@@ -5,5 +5,5 @@ YouTube-RV: 19.46.42
 
 **Dependencies** 👇  
 CLI: j-hc/revanced-cli-5.0.0-all.jar  
-Patches: ReVanced/patches-5.3.0.rvp  
-Patches: ReVanced/patches-5.3.0.rvp    
+Patches: ReVanced/patches-5.4.0-dev.3.rvp  
+[Changelog](https://github.com/ReVanced/revanced-patches/releases/tag/v5.4.0-dev.3)  
