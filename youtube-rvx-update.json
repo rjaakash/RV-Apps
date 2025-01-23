@@ -1,6 +1,6 @@
 {
-  "version": "v19.44.39 (patches: 5.2.2)",
-  "versionCode": 1,
-  "zipUrl": "https://github.com/rjaakash/RV-Apps/releases/download/1/youtube-rvx-magisk-v19.44.39-all.zip",
+  "version": "v19.44.39 (patches: 5.3.1)",
+  "versionCode": 3,
+  "zipUrl": "https://github.com/rjaakash/RV-Apps/releases/download/3/youtube-rvx-magisk-v19.44.39-all.zip",
   "changelog": "https://raw.githubusercontent.com/rjaakash/RV-Apps/update/build.md"
 }
