@@ -17,6 +17,14 @@ apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/photos/"
 uptodown-dlurl = "https://google-photos.en.uptodown.com/android"
 arch = "arm64-v8a"
 
+[Messenger-RV]
+app-name = "Messenger"
+rv-brand = "RV"
+build-mode = "module"
+apkmirror-dlurl = "https://www.apkmirror.com/apk/facebook-2/messenger/"
+uptodown-dlurl = "https://facebook-messenger.en.uptodown.com/android"
+arch = "arm64-v8a"
+
 [YouTube-RVX]
 app-name = "YouTube"
 patches-source = "inotia00/revanced-patches"
@@ -41,6 +49,7 @@ uptodown-dlurl = "https://youtube-music.en.uptodown.com/android"
 arch = "arm64-v8a"
 
 [YouTube2-RVX]
+enabled = false
 app-name = "YouTube2"
 patches-source = "inotia00/revanced-patches"
 cli-source = "inotia00/revanced-cli"
@@ -54,6 +63,7 @@ apkmirror-dlurl = "https://apkmirror.com/apk/google-inc/youtube/"
 uptodown-dlurl = "https://youtube.en.uptodown.com/android"
 
 [Music2-RVX]
+enabled = false
 app-name = "Music2"
 patches-source = "inotia00/revanced-patches"
 cli-source = "inotia00/revanced-cli"
@@ -78,10 +88,38 @@ included-patches = "'Custom header for YouTube' 'MaterialYou'"
 apkmirror-dlurl = "https://apkmirror.com/apk/google-inc/youtube/"
 uptodown-dlurl = "https://youtube.en.uptodown.com/android"
 
+[YouTube-anddea]
+app-name = "YouTube"
+patches-source = "anddea/revanced-patches"
+cli-source = "inotia00/revanced-cli"
+rv-brand = "anddea"
+build-mode = "module"
+version = "19.16.39"
+patcher-args = "-e 'Custom Shorts action buttons' -OiconType='cairo' -e 'Custom branding icon for YouTube' -OappIcon='xisr_yellow' -e 'Overlay buttons' -OiconType='rounded' -OchangeTopButtons='true' -e 'Settings for YouTube' -OsettingsLabel='Anddea' -e 'Snack bar components' -OdarkThemeBackgroundColor='@android:color/black' -e 'Visual preferences icons for YouTube' -OsettingsMenuIcon='rvx_letters' -OapplyToAll='false'"
+excluded-patches = "'Spoof streaming data'"
+included-patches = "'Custom branding icon for YouTube' 'Custom branding name for YouTube' 'Custom header for YouTube' 'Hide shortcuts'"
+apkmirror-dlurl = "https://apkmirror.com/apk/google-inc/youtube/"
+uptodown-dlurl = "https://youtube.en.uptodown.com/android"
+
+[Music-anddea]
+app-name = "Music"
+patches-source = "anddea/revanced-patches"
+cli-source = "inotia00/revanced-cli"
+rv-brand = "anddea"
+build-mode = "module"
+version = "7.16.53"
+patcher-args = "-e 'Custom branding icon for YouTube Music' -OappIcon='xisr_yellow' -e 'Custom branding name for YouTube Music' -OappNameNotification='Music' -OappNameLauncher='Music' -e 'Dark theme' -OdarkThemeBackgroundColor='@android:color/black' -e 'Settings for YouTube Music' -OsettingsLabel='Anddea' -e 'Visual preferences icons for YouTube Music' -OapplyToAll='false'"
+excluded-patches = "'Spoof client' 'Spoof streaming data'"
+included-patches = "'Custom branding icon for YouTube Music' 'Custom branding name for YouTube Music' 'Custom header for YouTube Music'"
+apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube-music"
+uptodown-dlurl = "https://youtube-music.en.uptodown.com/android"
+arch = "arm64-v8a"
+
 [Instagram-RVExpt]
 app-name = "Instagram"
 patches-source = "Aunali321/ReVancedExperiments"
 rv-brand = "RVExpt"
+build-mode = "both"
 apkmirror-dlurl = "https://www.apkmirror.com/apk/instagram/instagram-instagram/"
 uptodown-dlurl = "https://instagram.en.uptodown.com/android"
 arch = "arm64-v8a"
