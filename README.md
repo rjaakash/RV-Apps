@@ -6,6 +6,6 @@ Automated CI Builds
 
 Get the [**latest CI release**](https://github.com/rjaakash/RV-Apps/releases/latest).
 
-- To use RV Apps without root, install [**microG**](https://github.com/ReVanced/GmsCore/releases/latest) or [**MicroG RE**](https://github.com/WSTxda/MicroG-RE/releases/latest)
+- To use YouTube and YT Music without root, install [**microG**](https://github.com/ReVanced/GmsCore/releases/latest) or [**MicroG RE**](https://github.com/WSTxda/MicroG-RE/releases/latest)
 
 - To detach RV Apps from Play Store, use [**zygisk-detach**](https://github.com/j-hc/zygisk-detach)
