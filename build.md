@@ -1,5 +1,5 @@
 Music: 8.12.53  
-Spotify: 9.0.46.496  
+Spotify: 9.0.46.493  
 YouTube: 19.47.53  
 
 - [README](https://github.com/rjaakash/RV-Apps/blob/main/README.md)  
