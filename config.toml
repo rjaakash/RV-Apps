@@ -7,14 +7,14 @@ rv-brand = "anddea"
 
 [YouTube]
 build-mode = "both"
-patcher-args = "-e 'Custom Shorts action buttons' -OiconType=cairo -e 'Custom branding icon for YouTube' -OappIcon=mmt_pink -e 'Overlay buttons' -OiconType=rounded -OchangeTopButtons=true -e 'Settings for YouTube' -OrvxSettingsLabel=Anddea -e 'Visual preferences icons for YouTube' -OsettingsMenuIcon=rvx_letters -OapplyToAll=false"
+patcher-args = "-e 'Custom Shorts action buttons' -OiconType=cairo -e 'Custom branding icon for YouTube' -OappIcon=xisr_yellow -e 'Overlay buttons' -OiconType=rounded -OchangeTopButtons=true -e 'Settings for YouTube' -OrvxSettingsLabel=Anddea -e 'Visual preferences icons for YouTube' -OsettingsMenuIcon=rvx_letters -OapplyToAll=false"
 included-patches = "'Custom branding name for YouTube' 'Custom header for YouTube' 'Hide shortcuts'"
 apkmirror-dlurl = "https://apkmirror.com/apk/google-inc/youtube/"
 uptodown-dlurl = "https://youtube.en.uptodown.com/android"
 
 [Music]
 build-mode = "both"
-patcher-args = "-e 'Custom branding icon for YouTube Music' -OappIcon=mmt_pink -OrestoreOldSplashIcon=true -e 'Custom branding name for YouTube Music' -OappNameNotification=Music -OappNameLauncher=Music -e 'Dark theme' -OdarkThemeBackgroundColor=@android:color/black -e 'Settings for YouTube Music' -OrvxSettingsLabel=Anddea -e 'Visual preferences icons for YouTube Music' -OsettingsMenuIcon=rvx_letters -OapplyToAll=false"
+patcher-args = "-e 'Custom branding icon for YouTube Music' -OappIcon=xisr_yellow -OrestoreOldSplashIcon=true -e 'Custom branding name for YouTube Music' -OappNameNotification=Music -OappNameLauncher=Music -e 'Dark theme' -OdarkThemeBackgroundColor=@android:color/black -e 'Settings for YouTube Music' -OrvxSettingsLabel=Anddea -e 'Visual preferences icons for YouTube Music' -OsettingsMenuIcon=rvx_letters -OapplyToAll=false"
 included-patches = "'Custom header for YouTube Music'"
 apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube-music"
 uptodown-dlurl = "https://youtube-music.en.uptodown.com/android"
