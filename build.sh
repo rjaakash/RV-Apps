@@ -165,7 +165,7 @@ wait
 rm -rf temp/tmp.*
 if [ -z "$(ls -A1 "${BUILD_DIR}")" ]; then abort "All builds failed."; fi
 
-log "\n- [README](https://github.com/rjaakash/RV-Apps/blob/main/README.md)"
+log "\n- [README](https://github.com/rjaakash/RV-Apps/blob/dev/README.md)"
 log "\n**Dependencies** 👇"
 log "$(cat "$TEMP_DIR"/*-rv/changelog.md)"
 
