@@ -1,4 +1,4 @@
-name: Build Modules
+name: Build Modules (dev)
 on:
   workflow_call:
     inputs:
@@ -25,6 +25,7 @@ jobs:
           fetch-depth: 0
           submodules: true
 
+      # Sirf config update ke liye update branch se build.md read kar rahe hain
       - name: Update config
         if: ${{ inputs.from_ci }}
         run: |
@@ -40,10 +41,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Get latest release tag as JSON and extract tagName
           TAG=$(gh release list -L 1 --json tagName --jq '.[0].tagName' 2>/dev/null || echo "")
 
-          # Ensure TAG is a plain integer, otherwise reset to 0
           if ! [[ "$TAG" =~ ^[0-9]+$ ]]; then
             TAG=0
           fi
@@ -64,7 +63,6 @@ jobs:
           echo "BUILD_LOG<<${DELIM}" >> "$GITHUB_OUTPUT"
           cat build.md >> "$GITHUB_OUTPUT"
           echo "${DELIM}" >> "$GITHUB_OUTPUT"
-          cp -f build.md build.tmp
 
       - name: Upload modules to release
         uses: svenstaro/upload-release-action@v2
@@ -72,53 +70,8 @@ jobs:
           body: ${{ steps.get_output.outputs.BUILD_LOG }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ./build/*
-          release_name: ReVanced
+          release_name: ReVanced Dev
           tag: ${{ steps.next_ver_code.outputs.NEXT_VER_CODE }}
           file_glob: true
           overwrite: true
-
-      - name: Update changelog and Magisk update json
-        id: update_config
-        run: |
-          git checkout -f update || git switch --discard-changes --orphan update
-          cp -f build.tmp build.md
-
-          get_update_json() {
-            echo "{
-            \"version\": \"$1\",
-            \"versionCode\": ${{ steps.next_ver_code.outputs.NEXT_VER_CODE }},
-            \"zipUrl\": \"$2\",
-            \"changelog\": \"https://raw.githubusercontent.com/$GITHUB_REPOSITORY/update/build.md\"
-          }"
-          }
-
-          cd build || { echo "build folder not found"; exit 1; }
-
-          # Ensure we correctly handle the case of "no *magisk*.zip files"
-          shopt -s nullglob
-          for OUTPUT in *magisk*.zip; do
-            ZIP_S=$(unzip -p "$OUTPUT" module.prop)
-            if ! UPDATE_JSON_LINE=$(echo "$ZIP_S" | grep updateJson); then
-              continue
-            fi
-            UPDATE_JSON="${UPDATE_JSON_LINE##*/}"
-            VER_LINE=$(echo "$ZIP_S" | grep '^version=')
-            VER="${VER_LINE##*=}"
-            DLURL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/${{ steps.next_ver_code.outputs.NEXT_VER_CODE }}/${OUTPUT}"
-            get_update_json "$VER" "$DLURL" > "../$UPDATE_JSON"
-          done
-          shopt -u nullglob
-
-          cd ..
-
-          # If no *-update.json files exist, create a dummy so git-auto-commit-action still has something
-          if ! find . -name "*-update.json" | grep -q .; then
-            : > dummy-update.json
-          fi
-
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          branch: update
-          skip_checkout: true
-          file_pattern: build.md *-update.json
-          commit_message: Bump version ${{ steps.next_ver_code.outputs.NEXT_VER_CODE }}
+          prerelease: true
