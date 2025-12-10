@@ -28,9 +28,9 @@ jobs:
       - name: Update config
         if: ${{ inputs.from_ci }}
         run: |
-          if git checkout origin/update build.md; then
+          if git checkout origin/update -- build.md; then
             UPDATE_CFG=$(./build.sh config.toml --config-update)
-            if [ "$UPDATE_CFG" ]; then
+            if [ -n "$UPDATE_CFG" ]; then
               echo "$UPDATE_CFG" > config.json
             fi
           fi
@@ -40,9 +40,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG=$(gh release list -L 1 | awk -F '\t' '{print $3}')
-          if [ -z "$TAG" ]; then TAG=0; fi
-          echo "NEXT_VER_CODE=$((TAG + 1))" >> $GITHUB_OUTPUT
+          # Get latest release tag as JSON and extract tagName
+          TAG=$(gh release list -L 1 --json tagName --jq '.[0].tagName' 2>/dev/null || echo "")
+
+          # Ensure TAG is a plain integer, otherwise reset to 0
+          if ! [[ "$TAG" =~ ^[0-9]+$ ]]; then
+            TAG=0
+          fi
+
+          echo "NEXT_VER_CODE=$((TAG + 1))" >> "$GITHUB_OUTPUT"
 
       - name: Build modules/APKs
         run: if [ -f "config.json" ]; then ./build.sh config.json; else ./build.sh config.toml; fi
@@ -76,6 +82,7 @@ jobs:
         run: |
           git checkout -f update || git switch --discard-changes --orphan update
           cp -f build.tmp build.md
+
           get_update_json() {
             echo "{
             \"version\": \"$1\",
@@ -86,19 +93,28 @@ jobs:
           }
 
           cd build || { echo "build folder not found"; exit 1; }
+
+          # Ensure we correctly handle the case of "no *magisk*.zip files"
+          shopt -s nullglob
           for OUTPUT in *magisk*.zip; do
-            [ "$OUTPUT" = "*magisk*.zip" ] && continue
             ZIP_S=$(unzip -p "$OUTPUT" module.prop)
-            if ! UPDATE_JSON=$(echo "$ZIP_S" | grep updateJson); then continue; fi
-            UPDATE_JSON="${UPDATE_JSON##*/}"
-            VER=$(echo "$ZIP_S" | grep version=)
-            VER="${VER##*=}"
+            if ! UPDATE_JSON_LINE=$(echo "$ZIP_S" | grep updateJson); then
+              continue
+            fi
+            UPDATE_JSON="${UPDATE_JSON_LINE##*/}"
+            VER_LINE=$(echo "$ZIP_S" | grep '^version=')
+            VER="${VER_LINE##*=}"
             DLURL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/${{ steps.next_ver_code.outputs.NEXT_VER_CODE }}/${OUTPUT}"
-            get_update_json "$VER" "$DLURL" >"../$UPDATE_JSON"
+            get_update_json "$VER" "$DLURL" > "../$UPDATE_JSON"
           done
+          shopt -u nullglob
+
           cd ..
 
-          find . -name "*-update.json" | grep . || : >dummy-update.json
+          # If no *-update.json files exist, create a dummy so git-auto-commit-action still has something
+          if ! find . -name "*-update.json" | grep -q .; then
+            : > dummy-update.json
+          fi
 
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
@@ -106,42 +122,3 @@ jobs:
           skip_checkout: true
           file_pattern: build.md *-update.json
           commit_message: Bump version ${{ steps.next_ver_code.outputs.NEXT_VER_CODE }}
-
-      - name: Report to Telegram
-        env:
-          TG_TOKEN: ${{ secrets.TG_TOKEN }}
-        if: env.TG_TOKEN != null
-        run: |
-          cd build || { echo "build folder not found"; exit 1; }
-
-          TG_CHAT="@rvc_magisk"
-          NL=$'\n'
-          APKS=""
-          MODULES=""
-          for OUTPUT in *; do
-            DL_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/${{ steps.next_ver_code.outputs.NEXT_VER_CODE }}/${OUTPUT}"
-            if [[ $OUTPUT = *.apk ]]; then
-              APKS+="${NL}📦[${OUTPUT}](${DL_URL})"
-            elif [[ $OUTPUT = *.zip ]]; then
-              MODULES+="${NL}📦[${OUTPUT}](${DL_URL})"
-            fi
-          done
-          MODULES=${MODULES#"$NL"}
-          APKS=${APKS#"$NL"}
-
-          BODY="$(sed 's/^\* \*\*/↪ \*\*/g; s/^\* `/↪ \*\*/g; s/`/\*/g; s/^\* /\↪/g; s/\*\*/\*/g; s/###//g; s/^- /↪ /g; /^==/d;' ../build.md)"
-          MSG="*New build!*
-
-          ${BODY}
-
-          *▼ Download Links:*
-          Modules:
-          ${MODULES}
-
-          APKs:
-          ${APKS}
-          "
-          echo "'$MSG'"
-          MSG=${MSG:0:9450}
-          POST="https://api.telegram.org/bot${TG_TOKEN}/sendMessage"
-          curl -X POST --data-urlencode "parse_mode=Markdown" --data-urlencode "disable_web_page_preview=true" --data-urlencode "text=${MSG}" --data-urlencode "chat_id=${TG_CHAT}" "$POST"
