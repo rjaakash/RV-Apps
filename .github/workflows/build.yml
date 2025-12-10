@@ -25,8 +25,7 @@ jobs:
           fetch-depth: 0
           submodules: true
 
-      # Sirf config update ke liye update branch se build.md read kar rahe hain
-      - name: Update config
+      - name: Update config from update branch
         if: ${{ inputs.from_ci }}
         run: |
           if git checkout origin/update -- build.md; then
@@ -56,7 +55,7 @@ jobs:
           GITHUB_REPOSITORY: $GITHUB_REPOSITORY
           NEXT_VER_CODE: ${{ steps.next_ver_code.outputs.NEXT_VER_CODE }}
 
-      - name: Get output
+      - name: Collect build log
         id: get_output
         run: |
           DELIM="$(openssl rand -hex 8)"
@@ -64,8 +63,7 @@ jobs:
           cat build.md >> "$GITHUB_OUTPUT"
           echo "${DELIM}" >> "$GITHUB_OUTPUT"
 
-      # Anddea dev patches ka latest TAG le rahe hain (tags page se)
-      - name: Get latest Anddea patches version
+      - name: Get latest Anddea patches tag
         id: anddea_ver
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -75,14 +73,14 @@ jobs:
             echo "PATCH_VER=$PATCH_TAG" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Upload modules to release
+      - name: Upload modules to dev release
         uses: svenstaro/upload-release-action@v2
         with:
           body: ${{ steps.get_output.outputs.BUILD_LOG }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ./build/*
-          # Agar PATCH_VER hai -> "Anddea v3.15.0-dev.5"
-          # Agar PATCH_VER empty hai -> "Anddea Dev build <NEXT_VER_CODE>"
+          # If PATCH_VER exists -> "Anddea v3.15.0-dev.5"
+          # If PATCH_VER is empty -> "Anddea Dev build <NEXT_VER_CODE>"
           release_name: Anddea ${{ steps.anddea_ver.outputs.PATCH_VER || format('Dev build {0}', steps.next_ver_code.outputs.NEXT_VER_CODE) }}
           tag: ${{ steps.next_ver_code.outputs.NEXT_VER_CODE }}
           file_glob: true
