@@ -1,88 +1,111 @@
-name: Build Modules (dev)
-on:
-  workflow_call:
-    inputs:
-      from_ci:
-        type: boolean
-        required: false
-        default: true
+name: Dev Build from Anddea tags
 
+on:
   workflow_dispatch:
+  schedule:
+    # Every hour — adjust as you want (cron UTC)
+    - cron: '0 * * * *'
+
+permissions:
+  contents: write
+  checks: write
 
 jobs:
-  run:
-    permissions: write-all
+  dev-build:
     runs-on: ubuntu-latest
+    env:
+      REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/setup-java@v4
-        with:
-          distribution: "zulu"
-          java-version: "17"
-
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          submodules: true
 
-      - name: Update config from update branch
-        if: ${{ inputs.from_ci }}
+      - name: Ensure last-tag file exists
         run: |
-          if git checkout origin/update -- build.md; then
-            UPDATE_CFG=$(./build.sh config.toml --config-update)
-            if [ -n "$UPDATE_CFG" ]; then
-              echo "$UPDATE_CFG" > config.json
-            fi
+          if [ ! -f anddea_last_tag.txt ]; then
+            echo "" > anddea_last_tag.txt
+            git add anddea_last_tag.txt
+            git commit -m "Create anddea_last_tag.txt [skip ci]" || true
+            git push origin HEAD:refs/heads/${GITHUB_REF#refs/heads/} || true
           fi
 
-      - name: Get next version code
-        id: next_ver_code
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get latest Anddea tag
+        id: anddeatag
         run: |
-          TAG=$(gh release list -L 1 --json tagName --jq '.[0].tagName' 2>/dev/null || echo "")
+          # Fetch the latest tag name from anddea/revanced-patches (tags endpoint)
+          PATCH_TAG=$(gh api repos/anddea/revanced-patches/tags -q '.[0].name' 2>/dev/null || echo "")
+          echo "PATCH_TAG=$PATCH_TAG" >> $GITHUB_OUTPUT
 
+      - name: Read stored last tag
+        id: lasttag
+        run: |
+          LAST_TAG=$(cat anddea_last_tag.txt || echo "")
+          echo "LAST_TAG=$LAST_TAG" >> $GITHUB_OUTPUT
+
+      - name: Compare tags and exit if unchanged
+        if: ${{ steps.anddeatag.outputs.PATCH_TAG == steps.lasttag.outputs.LAST_TAG }}
+        run: |
+          echo "No new Anddea tag. Current: '${{ steps.anddeatag.outputs.PATCH_TAG }}'. Exiting."
+      
+      - name: Fail if no tag found
+        if: ${{ steps.anddeatag.outputs.PATCH_TAG == '' }}
+        run: |
+          echo "No Anddea tag found. Exiting."
+          exit 0
+
+      - name: Get next release numeric tag (version code)
+        id: next_ver_code
+        run: |
+          # Determine next numeric release tag for your repo releases
+          TAG=$(gh release list -L 1 --json tagName --jq '.[0].tagName' 2>/dev/null || echo "")
           if ! [[ "$TAG" =~ ^[0-9]+$ ]]; then
             TAG=0
           fi
-
-          echo "NEXT_VER_CODE=$((TAG + 1))" >> "$GITHUB_OUTPUT"
+          echo "NEXT_VER_CODE=$((TAG + 1))" >> $GITHUB_OUTPUT
 
       - name: Build modules/APKs
-        run: if [ -f "config.json" ]; then ./build.sh config.json; else ./build.sh config.toml; fi
+        run: |
+          # Run your build. This should produce files under ./build/
+          if [ -f "config.json" ]; then
+            ./build.sh config.json
+          else
+            ./build.sh config.toml
+          fi
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: $GITHUB_REPOSITORY
           NEXT_VER_CODE: ${{ steps.next_ver_code.outputs.NEXT_VER_CODE }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
 
       - name: Collect build log
         id: get_output
         run: |
           DELIM="$(openssl rand -hex 8)"
           echo "BUILD_LOG<<${DELIM}" >> "$GITHUB_OUTPUT"
-          cat build.md >> "$GITHUB_OUTPUT"
+          if [ -f build.md ]; then
+            cat build.md >> "$GITHUB_OUTPUT"
+          else
+            echo "No build.md present" >> "$GITHUB_OUTPUT"
+          fi
           echo "${DELIM}" >> "$GITHUB_OUTPUT"
 
-      - name: Get latest Anddea patches tag
-        id: anddea_ver
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PATCH_TAG=$(gh api repos/anddea/revanced-patches/tags -q '.[0].name' 2>/dev/null || echo "")
-          if [ -n "$PATCH_TAG" ]; then
-            echo "PATCH_VER=$PATCH_TAG" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Upload modules to dev release
+      - name: Create release and upload artifacts
         uses: svenstaro/upload-release-action@v2
         with:
-          body: ${{ steps.get_output.outputs.BUILD_LOG }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ./build/*
-          # If PATCH_VER exists -> "Anddea v3.15.0-dev.5"
-          # If PATCH_VER is empty -> "Anddea Dev build <NEXT_VER_CODE>"
-          release_name: Anddea ${{ steps.anddea_ver.outputs.PATCH_VER || format('Dev build {0}', steps.next_ver_code.outputs.NEXT_VER_CODE) }}
-          tag: ${{ steps.next_ver_code.outputs.NEXT_VER_CODE }}
           file_glob: true
           overwrite: true
+          tag: ${{ steps.next_ver_code.outputs.NEXT_VER_CODE }}
+          release_name: Anddea ${{ steps.anddeatag.outputs.PATCH_TAG }}
+          body: ${{ steps.get_output.outputs.BUILD_LOG }}
           prerelease: true
+
+      - name: Update stored last tag and push (skip ci)
+        run: |
+          echo "${{ steps.anddeatag.outputs.PATCH_TAG }}" > anddea_last_tag.txt
+          git add anddea_last_tag.txt
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Update anddea_last_tag to ${ { steps.anddeatag.outputs.PATCH_TAG } } [skip ci]" || true
+          # Push to the dev branch (current branch). Use GITHUB_TOKEN (already available).
+          git push origin HEAD:${GITHUB_REF#refs/heads/} || true
