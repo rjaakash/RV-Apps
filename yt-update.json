@@ -1,6 +1,6 @@
 {
-  "version": "v20.14.43 (patches 5.46.0)",
-  "versionCode": 2,
-  "zipUrl": "https://github.com/rjaakash/RV-Apps/releases/download/2/youtube-rv-magisk-v20.14.43-all.zip",
+  "version": "v20.14.43 (patches 5.47.0)",
+  "versionCode": 11,
+  "zipUrl": "https://github.com/rjaakash/RV-Apps/releases/download/11/youtube-rv-magisk-v20.14.43-all.zip",
   "changelog": "https://raw.githubusercontent.com/rjaakash/RV-Apps/update/build.md"
 }
