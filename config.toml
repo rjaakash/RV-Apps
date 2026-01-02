@@ -17,6 +17,7 @@ archive-dlurl = "https://archive.org/download/jhc-apks/apks/com.google.android.y
 
 [Music-Anddea]
 app-name = "Music"
+build-mode = "both"
 patcher-args = "-e 'Custom branding icon for YouTube Music' -OappIcon=xisr_yellow -OrestoreOldSplashIcon=true -e 'Custom branding name for YouTube Music' -OappNameNotification=Music -OappNameLauncher=Music -e 'Settings for YouTube Music' -OrvxSettingsLabel=Anddea -e 'Visual preferences icons for YouTube Music' -OsettingsMenuIcon=rvx_letters_bold -OapplyToAll=false"
 included-patches = "'Custom header for YouTube Music'"
 apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube-music"
